@@ -1,0 +1,19 @@
+{
+    "Unnamed: 0": 103,
+    "Edad": 41,
+    "Trabajo": "management",
+    "Estado Civil": "divorced",
+    "Fomación": "high.school",
+    "Impago": "no",
+    "Prestamo hipotecario": "yes",
+    "Prestamo Personal": "yes",
+    "Canal de contacto": "cellular",
+    "Mes": "jul",
+    "Dia de la semana": "mon",
+    "num contactos esta campaña": 4,
+    "num días último contacto": 20,
+    "num contactos otras campañas": 1,
+    "resultado campaña anterior": "failure",
+    "variación tasa empleo": -12,
+    "euribor3m": 2100
+}

@@ -1,0 +1,19 @@
+{
+  "Unnamed: 0": 101,
+  "Edad": 29,
+  "Trabajo": "technician",
+  "Estado Civil": "single",
+  "Fomación": "university.degree",
+  "Impago": "no",
+  "Prestamo hipotecario": "no",
+  "Prestamo Personal": "no",
+  "Canal de contacto": "cellular",
+  "Mes": "may",
+  "Dia de la semana": "thu",
+  "num contactos esta campaña": 3,
+  "num días último contacto": 5,
+  "num contactos otras campañas": 2,
+  "resultado campaña anterior": "success",
+  "variación tasa empleo": -17,
+  "euribor3m": 729
+}

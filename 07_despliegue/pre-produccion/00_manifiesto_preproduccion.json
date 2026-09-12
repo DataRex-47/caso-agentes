@@ -1,0 +1,510 @@
+{
+    "version": "1.0",
+    "generado_por": "A_08_Limpieza",
+    "timestamp": "2026-09-07",
+    "notebook_hash": "PENDIENTE_CALCULO_EXTERNO",
+    "fuente_datos": {
+        "archivo": "02_datos/01_Originales/contratacion_fondos.csv",
+        "lectura": "pd.read_csv(..., index_col=0, encoding='utf-8')",
+        "columnas_raw_necesarias": [
+            "Edad",
+            "Trabajo",
+            "Impago",
+            "Prestamo hipotecario",
+            "Canal de contacto",
+            "Mes",
+            "num contactos esta campaña",
+            "resultado campaña anterior",
+            "variación tasa empleo",
+            "euribor3m",
+            "contrata_fondos"
+        ]
+    },
+    "features_finalistas": [
+        {
+            "nombre": "trabajo_student",
+            "tipo": "int8",
+            "origen": "trabajo",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "impago_unknown",
+            "tipo": "int8",
+            "origen": "impago",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "prestamo_hipotecario_yes",
+            "tipo": "int8",
+            "origen": "prestamo_hipotecario",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "canal_de_contacto_telephone",
+            "tipo": "int8",
+            "origen": "canal_de_contacto",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "mes_sin",
+            "tipo": "float64",
+            "origen": "mes",
+            "requiere_fit": false
+        },
+        {
+            "nombre": "mes_cos",
+            "tipo": "float64",
+            "origen": "mes",
+            "requiere_fit": false
+        },
+        {
+            "nombre": "resultado_campana_anterior_nonexistent",
+            "tipo": "int8",
+            "origen": "resultado_campana_anterior",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "resultado_campana_anterior_success",
+            "tipo": "int8",
+            "origen": "resultado_campana_anterior",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "edad_ss",
+            "tipo": "float64",
+            "origen": "edad",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "num_contactos_esta_campana_log_ss",
+            "tipo": "float64",
+            "origen": "num_contactos_esta_campana",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "variacion_tasa_empleo_ss",
+            "tipo": "float64",
+            "origen": "variacion_tasa_empleo",
+            "requiere_fit": true
+        },
+        {
+            "nombre": "euribor3m_ss",
+            "tipo": "float64",
+            "origen": "euribor3m",
+            "requiere_fit": true
+        }
+    ],
+    "variable_objetivo": {
+        "nombre": "contrata_fondos",
+        "tipo": "int64"
+    },
+    "modelo_final": {
+        "clase": "RandomForestClassifier",
+        "hiperparametros": {
+            "n_estimators": 300,
+            "max_depth": 10,
+            "min_samples_split": 2,
+            "min_samples_leaf": 1,
+            "max_features": "sqrt",
+            "random_state": 42,
+            "n_jobs": -1,
+            "class_weight": null
+        },
+        "metrica_validacion": {
+            "nombre": "roc_auc",
+            "valor": 0.8006
+        }
+    },
+    "dag_transformaciones": {
+        "orden_ejecucion": [
+            "P01",
+            "P02",
+            "P03",
+            "P04",
+            "P05",
+            "P06",
+            "P07",
+            "P08",
+            "P09",
+            "P10",
+            "P11",
+            "P12",
+            "P13",
+            "P14",
+            "P15",
+            "P16",
+            "P17",
+            "P18"
+        ],
+        "pasos": [
+            {
+                "paso_id": "P01",
+                "descripcion": "Split train/validation sin leakage (70/30, estratificado)",
+                "inputs": [
+                    "df"
+                ],
+                "outputs": [
+                    "df_train",
+                    "df_val"
+                ],
+                "depende_de": [],
+                "tipo_sklearn": "train_test_split",
+                "requiere_fit": false,
+                "codigo_referencia": "train_test_split(pk, test_size=0.30, random_state=42, stratify=df['contrata_fondos'])"
+            },
+            {
+                "paso_id": "P02",
+                "descripcion": "Renombrado de columnas a snake_case + corrección 'Fomación'->'formacion'",
+                "inputs": [
+                    "Edad",
+                    "Trabajo",
+                    "Estado Civil",
+                    "Fomación",
+                    "Impago",
+                    "Prestamo hipotecario",
+                    "Prestamo Personal",
+                    "Canal de contacto",
+                    "Mes",
+                    "Dia de la semana",
+                    "num contactos esta campaña",
+                    "num días último contacto",
+                    "num contactos otras campañas",
+                    "resultado campaña anterior",
+                    "variación tasa empleo",
+                    "euribor3m",
+                    "contrata_fondos"
+                ],
+                "outputs": [
+                    "edad",
+                    "trabajo",
+                    "estado_civil",
+                    "formacion",
+                    "impago",
+                    "prestamo_hipotecario",
+                    "prestamo_personal",
+                    "canal_de_contacto",
+                    "mes",
+                    "dia_de_la_semana",
+                    "num_contactos_esta_campana",
+                    "num_dias_ultimo_contacto",
+                    "num_contactos_otras_campanas",
+                    "resultado_campana_anterior",
+                    "variacion_tasa_empleo",
+                    "euribor3m",
+                    "contrata_fondos"
+                ],
+                "depende_de": [
+                    "P01"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df = df.rename(columns=mapeo)"
+            },
+            {
+                "paso_id": "P03",
+                "descripcion": "Cast a dtype 'category' de las variables categóricas",
+                "inputs": [
+                    "trabajo",
+                    "estado_civil",
+                    "formacion",
+                    "impago",
+                    "prestamo_hipotecario",
+                    "prestamo_personal",
+                    "canal_de_contacto",
+                    "mes",
+                    "dia_de_la_semana",
+                    "resultado_campana_anterior"
+                ],
+                "outputs": [
+                    "categoricas_as_category"
+                ],
+                "depende_de": [
+                    "P02"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df[col] = df[col].astype('category')"
+            },
+            {
+                "paso_id": "P04",
+                "descripcion": "Eliminación de duplicados completos (keep='first') y reset del índice",
+                "inputs": [
+                    "df"
+                ],
+                "outputs": [
+                    "df"
+                ],
+                "depende_de": [
+                    "P03"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df = df.drop_duplicates(keep='first').reset_index(drop=True)"
+            },
+            {
+                "paso_id": "P05",
+                "descripcion": "Drop de 'dia_de_la_semana' e imputación de 'formacion' (unknown) y 'edad' (mediana)",
+                "inputs": [
+                    "dia_de_la_semana",
+                    "formacion",
+                    "edad"
+                ],
+                "outputs": [
+                    "formacion",
+                    "edad"
+                ],
+                "depende_de": [
+                    "P04"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df['formacion'] = df['formacion'].fillna('unknown'); df['edad'] = df['edad'].fillna(mediana_edad)"
+            },
+            {
+                "paso_id": "P06",
+                "descripcion": "Cast de 'edad' a int64",
+                "inputs": [
+                    "edad"
+                ],
+                "outputs": [
+                    "edad"
+                ],
+                "depende_de": [
+                    "P05"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df['edad'] = df['edad'].astype('int64')"
+            },
+            {
+                "paso_id": "P07",
+                "descripcion": "OrdinalEncoding de 'formacion' (unknown->NaN)",
+                "inputs": [
+                    "formacion"
+                ],
+                "outputs": [
+                    "formacion_oe"
+                ],
+                "depende_de": [
+                    "P06"
+                ],
+                "tipo_sklearn": "OrdinalEncoder",
+                "requiere_fit": true,
+                "codigo_referencia": "oe_form.fit_transform(df[['formacion']])"
+            },
+            {
+                "paso_id": "P08",
+                "descripcion": "Imputación con mediana de 'formacion_oe'",
+                "inputs": [
+                    "formacion_oe"
+                ],
+                "outputs": [
+                    "formacion_oe_imp"
+                ],
+                "depende_de": [
+                    "P07"
+                ],
+                "tipo_sklearn": "SimpleImputer",
+                "requiere_fit": true,
+                "codigo_referencia": "imp_form.fit_transform(df_f1[['formacion_oe']])"
+            },
+            {
+                "paso_id": "P09",
+                "descripcion": "Reemplazo de -1 por NaN e imputación con mediana de 'num_dias_ultimo_contacto'",
+                "inputs": [
+                    "num_dias_ultimo_contacto"
+                ],
+                "outputs": [
+                    "num_dias_ultimo_contacto_imp"
+                ],
+                "depende_de": [
+                    "P06"
+                ],
+                "tipo_sklearn": "SimpleImputer",
+                "requiere_fit": true,
+                "codigo_referencia": "imp_dias.fit_transform(df_f1[['num_dias_rec']])"
+            },
+            {
+                "paso_id": "P10",
+                "descripcion": "Transformación log1p de num_contactos_esta_campana y num_contactos_otras_campanas",
+                "inputs": [
+                    "num_contactos_esta_campana",
+                    "num_contactos_otras_campanas"
+                ],
+                "outputs": [
+                    "num_contactos_esta_campana_log",
+                    "num_contactos_otras_campanas_log"
+                ],
+                "depende_de": [
+                    "P06"
+                ],
+                "tipo_sklearn": "FunctionTransformer",
+                "requiere_fit": true,
+                "codigo_referencia": "log1p_t.fit_transform(df[['num_contactos_esta_campana']])"
+            },
+            {
+                "paso_id": "P11",
+                "descripcion": "Cast a float de las numéricas sin transformar (edad, variacion_tasa_empleo, euribor3m)",
+                "inputs": [
+                    "edad",
+                    "variacion_tasa_empleo",
+                    "euribor3m"
+                ],
+                "outputs": [
+                    "edad",
+                    "variacion_tasa_empleo",
+                    "euribor3m"
+                ],
+                "depende_de": [
+                    "P06"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df_f1[c] = df[c].astype(float)"
+            },
+            {
+                "paso_id": "P12",
+                "descripcion": "One-Hot Encoding (drop='first') de las variables categóricas",
+                "inputs": [
+                    "trabajo",
+                    "estado_civil",
+                    "impago",
+                    "prestamo_hipotecario",
+                    "prestamo_personal",
+                    "canal_de_contacto",
+                    "resultado_campana_anterior"
+                ],
+                "outputs": [
+                    "dummies_ohe"
+                ],
+                "depende_de": [
+                    "P03",
+                    "P06"
+                ],
+                "tipo_sklearn": "OneHotEncoder",
+                "requiere_fit": true,
+                "codigo_referencia": "ohe = OneHotEncoder(drop='first', sparse_output=False, dtype=np.int8); ohe.fit_transform(df[[col]])"
+            },
+            {
+                "paso_id": "P13",
+                "descripcion": "Flag 'contactado_previamente' a partir de num_dias_ultimo_contacto",
+                "inputs": [
+                    "num_dias_ultimo_contacto"
+                ],
+                "outputs": [
+                    "contactado_previamente"
+                ],
+                "depende_de": [
+                    "P06"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df_f2['contactado_previamente'] = (df['num_dias_ultimo_contacto'] >= 0).astype(np.int8)"
+            },
+            {
+                "paso_id": "P14",
+                "descripcion": "Codificación cíclica seno/coseno del mes",
+                "inputs": [
+                    "mes"
+                ],
+                "outputs": [
+                    "mes_sin",
+                    "mes_cos"
+                ],
+                "depende_de": [
+                    "P06"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df_f2['mes_sin'] = np.sin(2*np.pi*mes_num/12); df_f2['mes_cos'] = np.cos(2*np.pi*mes_num/12)"
+            },
+            {
+                "paso_id": "P15",
+                "descripcion": "StandardScaler sobre las features numéricas de FASE 1 (sufijo '_ss')",
+                "inputs": [
+                    "formacion_oe_imp",
+                    "num_dias_ultimo_contacto_imp",
+                    "num_contactos_esta_campana_log",
+                    "num_contactos_otras_campanas_log",
+                    "edad",
+                    "variacion_tasa_empleo",
+                    "euribor3m"
+                ],
+                "outputs": [
+                    "formacion_oe_imp_ss",
+                    "num_dias_ultimo_contacto_imp_ss",
+                    "num_contactos_esta_campana_log_ss",
+                    "num_contactos_otras_campanas_log_ss",
+                    "edad_ss",
+                    "variacion_tasa_empleo_ss",
+                    "euribor3m_ss"
+                ],
+                "depende_de": [
+                    "P08",
+                    "P09",
+                    "P10",
+                    "P11"
+                ],
+                "tipo_sklearn": "StandardScaler",
+                "requiere_fit": true,
+                "codigo_referencia": "ss.fit_transform(df_f1[cols_fase1_numericas])"
+            },
+            {
+                "paso_id": "P16",
+                "descripcion": "Unión final (target + df_f2 + df_f3)",
+                "inputs": [
+                    "contrata_fondos",
+                    "dummies_ohe",
+                    "contactado_previamente",
+                    "mes_sin",
+                    "mes_cos",
+                    "features_ss"
+                ],
+                "outputs": [
+                    "df_final"
+                ],
+                "depende_de": [
+                    "P12",
+                    "P13",
+                    "P14",
+                    "P15"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df_final = pd.concat([df[[TARGET]], df_f2, df_f3], axis=1)"
+            },
+            {
+                "paso_id": "P17",
+                "descripcion": "Selección de las 12 variables finalistas (target incluido)",
+                "inputs": [
+                    "df_final"
+                ],
+                "outputs": [
+                    "df_modelo"
+                ],
+                "depende_de": [
+                    "P16"
+                ],
+                "tipo_sklearn": "none",
+                "requiere_fit": false,
+                "codigo_referencia": "df_modelo = df_final[VARIABLES_FINALISTAS + [TARGET]].copy()"
+            },
+            {
+                "paso_id": "P18",
+                "descripcion": "Entrenamiento del modelo final RandomForestClassifier",
+                "inputs": [
+                    "df_modelo"
+                ],
+                "outputs": [
+                    "modelo_final"
+                ],
+                "depende_de": [
+                    "P17"
+                ],
+                "tipo_sklearn": "RandomForestClassifier",
+                "requiere_fit": true,
+                "codigo_referencia": "modelo_final.fit(X, y)"
+            }
+        ]
+    }
+}

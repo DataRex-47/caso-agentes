@@ -1,0 +1,12 @@
+trabajo_student
+impago_unknown
+prestamo_hipotecario_yes
+canal_de_contacto_telephone
+mes_sin
+mes_cos
+resultado_campana_anterior_nonexistent
+resultado_campana_anterior_success
+edad_ss
+num_contactos_esta_campana_log_ss
+variacion_tasa_empleo_ss
+euribor3m_ss
