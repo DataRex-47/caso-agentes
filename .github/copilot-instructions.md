@@ -14,34 +14,42 @@
 
 ## ESTADO ACTUAL DEL PROYECTO
 
-**Fase completada**: A_08_Limpieza
+**Fase completada**: A_10_BatchDeploy
 
-**Notebook finalista**: `03_notebooks/08_Preproduccion.ipynb`
+**Tipo de proceso configurado**: Scoring
 
-**Manifiesto para A_09**: `07_despliegue/pre-produccion/00_manifiesto_preproduccion.json`
+**Modo de ejecución**: AMBOS (LOCAL + RENDER)
 
-**Siguiente paso**: Ejecutar A_09_Pipelines
+**Sistema operativo detectado**: Windows
 
-**Estructura del dataframe**:
-```
-<class 'pandas.DataFrame'>
-RangeIndex: 28015 entries, 0 to 28014
-Data columns (total 13 columns):
- #   Column                                  Non-Null Count  Dtype
----  ------                                  --------------  -----
- 0   trabajo_student                         28015 non-null  int8
- 1   impago_unknown                          28015 non-null  int8
- 2   prestamo_hipotecario_yes                28015 non-null  int8
- 3   canal_de_contacto_telephone             28015 non-null  int8
- 4   mes_sin                                 28015 non-null  float64
- 5   mes_cos                                 28015 non-null  float64
- 6   resultado_campana_anterior_nonexistent  28015 non-null  int8
- 7   resultado_campana_anterior_success      28015 non-null  int8
- 8   edad_ss                                 28015 non-null  float64
- 9   num_contactos_esta_campana_log_ss       28015 non-null  float64
- 10  variacion_tasa_empleo_ss                28015 non-null  float64
- 11  euribor3m_ss                            28015 non-null  float64
- 12  contrata_fondos                         28015 non-null  int64
-dtypes: float64(6), int64(1), int8(6)
-memory usage: 1.7 MB
-```
+**Script batch principal**:
+`07_despliegue/02_produccion_scoring.py`
+
+**Origen de datos**:
+- Tipo: CSV local
+- Detalle: `02_datos/01_Originales/contratacion_fondos.csv` (LOCAL). En RENDER: descarga vía `INPUT_URL` (fallback: CSV del repo si existiera).
+
+**Destino de resultados**:
+- Tipo: Carpeta local (archivo fijo)
+- Detalle: `07_despliegue/batch/resultados.csv` (LOCAL). En RENDER: POST a `OUTPUT_WEBHOOK_URL` (disco efímero).
+
+**Programación configurada**:
+- Frecuencia: DAILY
+- Hora: 21:20 (local)
+- CronSchedule (si aplica): `20 21 * * *` (UTC en Render; 21:20 local ≈ `20 19 * * *` en verano)
+
+**Artefactos generados**:
+- `07_despliegue/batch/` (config_batch.json, run_manual.bat, create_schedule.bat, remove_schedule.bat, activate_schedule.bat)
+- `07_despliegue/deploy-ready/render-batch/` (start.sh, render.yaml, requirements.txt, README_RENDER_CRON.md)
+
+**Notas Render**:
+- Cron Jobs requieren plan de pago (no disponibles en free); MCP Context7 no estaba disponible en la sesión → revalidar en la documentación oficial.
+- `cronSchedule` se interpreta en UTC y no aplica horario de verano.
+- `*.csv` está en `.gitignore` → el CSV de entrada NO viaja al repo; usar `INPUT_URL`.
+- `07_despliegue/artefacto_pipeline.pkl` está des-ignorado explícitamente → disponible en el build de Render.
+
+**Siguiente paso recomendado**:
+- Probar ejecución manual (`07_despliegue/batch/run_manual.bat`)
+- Activar scheduler (`activate_schedule.bat`) si procede
+- En Render: crear el Cron Job en el dashboard usando `render.yaml` / `start.sh` y el cronSchedule
+- (Cadena) Continuar con agentes posteriores para API (A_11) y app Streamlit (A_12)

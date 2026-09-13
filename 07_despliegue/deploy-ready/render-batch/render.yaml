@@ -1,0 +1,23 @@
+# ── A_10_BatchDeploy · Render Cron Job ─────────
+# ADVERTENCIA: los Cron Jobs de Render NO están disponibles en el plan free
+# (requieren plan de pago). El cronSchedule se interpreta en UTC.
+
+services:
+  - type: cron
+    name: caso-agentes-scoring-cron
+    runtime: python
+    plan: starter
+    schedule: "20 21 * * *"
+    buildCommand: pip install --upgrade pip && pip install -r 07_despliegue/deploy-ready/render-batch/requirements.txt
+    startCommand: bash 07_despliegue/deploy-ready/render-batch/start.sh
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12"
+      - key: HTTP_TIMEOUT
+        value: "60"
+      # Origen de datos: URL del CSV de entrada (obligatorio en Render)
+      - key: INPUT_URL
+        sync: false
+      # Destino de resultados: webhook al que se hace POST del CSV (recomendado)
+      - key: OUTPUT_WEBHOOK_URL
+        sync: false

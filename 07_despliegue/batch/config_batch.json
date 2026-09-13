@@ -1,0 +1,33 @@
+{
+    "phase": "A_10_BatchDeploy",
+    "process_type": "scoring",
+    "mode": "both",
+    "os": "windows",
+    "project_name": "Caso_Agentes",
+    "working_dir": "C:/Users/Admin/Desktop/Desktop/CarpetaFisica/Data Detective/Ciencia_Datos_2/Caso_Agentes",
+    "python_executable": "C:/Users/Admin/Desktop/Desktop/CarpetaFisica/Data Detective/Ciencia_Datos_2/.venv/Scripts/python.exe",
+    "script_path": "07_despliegue/02_produccion_scoring.py",
+    "artifact_path": "07_despliegue/artefacto_pipeline.pkl",
+    "task_name": "Caso_Agentes_Scoring_Batch",
+    "data_source": {
+        "type": "csv_local",
+        "path": "02_datos/01_Originales",
+        "filename": "contratacion_fondos.csv"
+    },
+    "data_sink": {
+        "type": "folder",
+        "path": "07_despliegue/batch",
+        "filename": "resultados.csv"
+    },
+    "schedule": {
+        "frequency": "DAILY",
+        "time": "21:20",
+        "day_of_week": null
+    },
+    "render": {
+        "cronSchedule": "20 21 * * *",
+        "timezone": "UTC",
+        "schedule_time_local": "21:20",
+        "nota_utc": "Render interpreta el cron en UTC. 21:20 local (Europe/Madrid, CEST=UTC+2) equivale a 19:20 UTC -> cron '20 19 * * *'."
+    }
+}

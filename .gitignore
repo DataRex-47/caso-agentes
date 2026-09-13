@@ -22,6 +22,8 @@ __pycache__/
 05_modelos/**
 !05_modelos/.gitkeep
 *.pkl
+# Excepción: artefacto necesario en producción
+!07_despliegue/artefacto_pipeline.pkl
 *.pickle
 *.joblib
 
