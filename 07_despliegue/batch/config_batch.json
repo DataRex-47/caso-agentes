@@ -21,13 +21,13 @@
     },
     "schedule": {
         "frequency": "DAILY",
-        "time": "21:20",
+        "time": "22:30",
         "day_of_week": null
     },
     "render": {
-        "cronSchedule": "20 21 * * *",
+        "cronSchedule": "30 20 * * *",
         "timezone": "UTC",
-        "schedule_time_local": "21:20",
-        "nota_utc": "Render interpreta el cron en UTC. 21:20 local (Europe/Madrid, CEST=UTC+2) equivale a 19:20 UTC -> cron '20 19 * * *'."
+        "schedule_time_local": "22:30",
+        "nota_utc": "Render interpreta el cron en UTC. 22:30 local (Europe/Madrid, CEST=UTC+2) equivale a 20:30 UTC -> cron '30 20 * * *'. En invierno (CET=UTC+1) equivaldria a '30 21 * * *'."
     }
 }

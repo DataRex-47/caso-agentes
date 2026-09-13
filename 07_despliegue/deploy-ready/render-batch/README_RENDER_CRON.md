@@ -17,16 +17,16 @@ Guía para desplegar el proceso batch de scoring como **Cron Job** en Render.
 ## 1. Programación (`schedule`)
 
 ```
-20 21 * * *      # todos los días a las 21:20 UTC
+30 20 * * *      # todos los días a las 20:30 UTC = 22:30 local (verano)
 ```
 
 Convertido desde la hora local solicitada:
 
 | Concepto | Valor |
 |---|---|
-| Hora local solicitada | 21:20 (Europe/Madrid) |
-| Equivalencia UTC (CEST, verano = UTC+2) | 19:20 → `20 19 * * *` |
-| Equivalencia UTC (CET, invierno = UTC+1) | 20:20 → `20 20 * * *` |
+| Hora local solicitada | 22:30 (Europe/Madrid) |
+| Equivalencia UTC (CEST, verano = UTC+2) | 20:30 → `30 20 * * *` |
+| Equivalencia UTC (CET, invierno = UTC+1) | 21:30 → `30 21 * * *` |
 
 ⚠️ Render **no aplica horario de verano**: si quieres que coincida con las 21:20 locales todo el año, tendrás que ajustar el cron en el cambio de hora, o dejar la hora UTC fija y asumir el desfase.
 
@@ -67,7 +67,7 @@ El `start.sh`:
 3. [ ] Runtime: **Python**. Plan: **Starter** o superior.
 4. [ ] Build Command: `pip install --upgrade pip && pip install -r 07_despliegue/deploy-ready/render-batch/requirements.txt`
 5. [ ] Start Command: `bash 07_despliegue/deploy-ready/render-batch/start.sh`
-6. [ ] Schedule: `20 21 * * *` (UTC) — o `20 19 * * *` si quieres las 21:20 locales en verano.
+6. [ ] Schedule: `30 20 * * *` (UTC) — equivale a las 22:30 locales en verano (`30 21 * * *` en invierno).
 7. [ ] Añadir `INPUT_URL` y `OUTPUT_WEBHOOK_URL` en **Environment**.
 8. [ ] Ejecutar **Trigger Run** una vez y revisar los **Logs**.
 9. [ ] Verificar que el webhook ha recibido el CSV `resultados.csv`.

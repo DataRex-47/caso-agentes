@@ -12,44 +12,110 @@
 - Rutas siempre con `pathlib`, nunca concatenando strings.
 - Los datos crudos de `02_datos/01_Originales/` son de **solo lectura**: nunca se sobrescriben.
 
+## Estilo de respuesta: modo TDAH (siempre activo)
+
+Aplica a TODAS las respuestas, en todos los modos y con todos los agentes.
+
+1. Primera línea = acción concreta (comando, ruta, snippet). Nunca preámbulo.
+2. Varios pasos → lista numerada; un paso = una acción acotada.
+3. Cerrar con UNA acción de menos de 2 minutos.
+4. Restatar el estado al inicio de cada turno ("paso 3 de 5 hecho: ...").
+5. Estimaciones en unidades concretas ("15 min"), nunca "un poco de trabajo".
+6. Errores: causa + arreglo. Sin "vaya" ni "parece que hay un problema".
+7. Máximo 5 ítems visibles por grupo.
+8. Prohibido: "Gran pregunta", "Déjame...", "¿algo más?", recaps finales, modismos.
+9. Excepción: si el usuario pide "explícame", el cuerpo puede ser largo; el formato se mantiene.
+
+### Precedencia del estilo TDAH
+
+- Estas reglas tienen prioridad sobre cualquier instrucción de agente que pida
+  "explicar al usuario", "explicar el porqué" o "resumen ejecutivo".
+- Los informes completos van a **archivo** (`06_resultados/`, `.md`, notebooks).
+  Al chat solo van ≤5 ítems con lo accionable.
+- Los agentes A_02, A_03, A_04, A_05, A_06 y A_07 que piden explicaciones o
+  resumen ejecutivo deben comprimirlo a ese formato sin perder contenido:
+  lo omitido en el chat se guarda en el informe en disco.
+
 ## ESTADO ACTUAL DEL PROYECTO
 
-**Fase completada**: A_10_BatchDeploy
+**Fase completada**: A_11_API_Deployer
 
 **Tipo de proceso configurado**: Scoring
 
-**Modo de ejecución**: AMBOS (LOCAL + RENDER)
+**Modo de ejecución**: LOCAL + RENDER_ROOT_READY
 
 **Sistema operativo detectado**: Windows
 
-**Script batch principal**:
-`07_despliegue/02_produccion_scoring.py`
+**Entorno**: UV, Python 3.12 (`.python-version`), venv en `../.venv/Scripts/python.exe`
 
-**Origen de datos**:
-- Tipo: CSV local
-- Detalle: `02_datos/01_Originales/contratacion_fondos.csv` (LOCAL). En RENDER: descarga vía `INPUT_URL` (fallback: CSV del repo si existiera).
+---
 
-**Destino de resultados**:
-- Tipo: Carpeta local (archivo fijo)
-- Detalle: `07_despliegue/batch/resultados.csv` (LOCAL). En RENDER: POST a `OUTPUT_WEBHOOK_URL` (disco efímero).
+### Fuente de verdad y motor de scoring
 
-**Programación configurada**:
-- Frecuencia: DAILY
-- Hora: 21:20 (local)
-- CronSchedule (si aplica): `20 21 * * *` (UTC en Render; 21:20 local ≈ `20 19 * * *` en verano)
+- Script de producción (fuente de verdad): `07_despliegue/02_produccion_scoring.py`
+- Artefacto: `07_despliegue/artefacto_pipeline.pkl` (cloudpickle; des-ignorado en `.gitignore`; vive fuera de `api_render/` y no se duplica)
+- Motor reutilizable (regenerado desde la fuente de verdad): `07_despliegue/deploy-ready/api_render/api/scoring.py`
+  - Contrato: `DataFrame -> DataFrame`
+  - `scoring_df(df, id_col=None)` — si `id_col` es None genera `registro_id` secuencial 0..n-1 (comportamiento por defecto del batch)
+  - Incluye `prepara_datos` (armonización temprana: typo `Fomación`, snake_case sin acentos, drop de `dia_de_la_semana`)
+  - Nota: `percentil` usa `pd.qcut` sobre el lote; con 1 registro o scores constantes se degrada a 1 para no romper online
+- `07_despliegue/02_api/` es el despliegue API previo (solo contraste). NO es la salida canónica de A_11.
 
-**Artefactos generados**:
-- `07_despliegue/batch/` (config_batch.json, run_manual.bat, create_schedule.bat, remove_schedule.bat, activate_schedule.bat)
-- `07_despliegue/deploy-ready/render-batch/` (start.sh, render.yaml, requirements.txt, README_RENDER_CRON.md)
+### API generada
 
-**Notas Render**:
-- Cron Jobs requieren plan de pago (no disponibles en free); MCP Context7 no estaba disponible en la sesión → revalidar en la documentación oficial.
-- `cronSchedule` se interpreta en UTC y no aplica horario de verano.
-- `*.csv` está en `.gitignore` → el CSV de entrada NO viaja al repo; usar `INPUT_URL`.
-- `07_despliegue/artefacto_pipeline.pkl` está des-ignorado explícitamente → disponible en el build de Render.
+- Raíz desplegable (patrón del profesor): `07_despliegue/deploy-ready/api_render/`
+  (`__init__.py`, `api/` con `__init__.py`+`main.py`+`scoring.py`+`schemas.py`+`test_payload.json`,
+  `produccion_scoring.py`, `requirements.txt`, `runtime.txt`, `README_DEPLOY.md`)
+- Instancia FastAPI: `app` en `api/main.py`
+- El artefacto se resuelve en `07_despliegue/artefacto_pipeline.pkl` (fuera de `api_render/`; no se copia ni se mueve)
+
+**Contrato final (handoff para A_12 y posteriores)**
+- Endpoint de inferencia: `POST /predict`
+- Comando local canónico (desde `07_despliegue/deploy-ready/api_render`): `uvicorn api.main:app --reload`
+- Formato de entrada: **lista JSON de registros** `[{...}]` (siempre lista, también con 1 registro)
+- Formato de salida: **lista JSON de objetos** (equivalente a `records`)
+- Modalidad de salida: **salida reducida operativa**
+- Columnas reales de salida: `registro_id`, `score_contratacion`, `prediccion_binaria`, `categoria`
+- `percentil` se calcula en el motor pero **se omite** de la API por ser relativo al lote
+- Lógica de negocio: la del motor (`categoria`: `>=0.7` ALTA_PROBABILIDAD, `>=0.4` MEDIA_PROBABILIDAD, resto BAJA_PROBABILIDAD). Sin lógica adicional.
+- Campos de entrada (15, alias = nombres originales del CSV): `Edad`, `Trabajo`, `Estado Civil`, `Fomación`, `Impago`, `Prestamo hipotecario`, `Prestamo Personal`, `Canal de contacto`, `Mes`, `num contactos esta campaña`, `num días último contacto`, `num contactos otras campañas`, `resultado campaña anterior`, `variación tasa empleo`, `euribor3m`
+- Exclusiones: `contrata_fondos` (target), `Unnamed: 0` (el batch genera ID), `Dia de la semana` (el flujo lo elimina; si se envía, Pydantic lo ignora)
+- Endpoints de diagnóstico: `GET /health`, `GET /debug`
+
+**Ejemplo válido de respuesta**
+```json
+[{"registro_id": 0, "score_contratacion": 0.61, "prediccion_binaria": 1, "categoria": "MEDIA_PROBABILIDAD"}]
+```
+
+**Configuración validada de Render (Web Service)**
+```text
+Root Directory: 07_despliegue/deploy-ready/api_render
+Build Command: pip install -r requirements.txt
+Start Command: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+Key: PYTHON_VERSION
+Value: 3.12.13
+```
+
+Material de despliegue: `07_despliegue/deploy-ready/api_render/` (paquete autocontenido).
+`07_despliegue/api/` no existe: queda descartado, no usarlo ni crearlo.
+
+**Validación local**: HECHA.
+- `GET /docs` → OK
+- `GET /debug` → `"status": "OK"`, motor puntuando correctamente
+- `POST /predict` → OK
+- Python real del entorno validado: `3.12.13`
+- Pendiente único: fijar versiones exactas de `fastapi`/`uvicorn` en
+  `07_despliegue/deploy-ready/api_render/requirements.txt` con `uv pip freeze`.
+
+**Notas de despliegue**
+- `*.csv` está en `.gitignore` → el CSV de entrada NO viaja al repo (el batch usa `INPUT_URL`).
+- `07_despliegue/artefacto_pipeline.pkl` está des-ignorado → disponible en el build de Render
+  y resuelto desde `api_render/api/scoring.py` (no se duplica ni se mueve).
+- `requirements.txt` de la API: cadena ML tomada de `deploy-ready/render-batch/requirements.txt` (entorno real); versiones de `fastapi`/`uvicorn` tomadas de `pyproject.toml`. **Confirmar con `uv pip freeze`**.
+- MCP Context7 no estaba disponible en la sesión → revalidar `PYTHON_VERSION` y precedencia en la documentación oficial de Render.
 
 **Siguiente paso recomendado**:
-- Probar ejecución manual (`07_despliegue/batch/run_manual.bat`)
-- Activar scheduler (`activate_schedule.bat`) si procede
-- En Render: crear el Cron Job en el dashboard usando `render.yaml` / `start.sh` y el cronSchedule
-- (Cadena) Continuar con agentes posteriores para API (A_11) y app Streamlit (A_12)
+1. Confirmar versiones exactas con `uv pip freeze` y actualizar `07_despliegue/deploy-ready/api_render/requirements.txt`.
+2. Commit + push y alta manual del Web Service en Render con la configuración anterior.
+3. Comprobar `GET /health` y `GET /debug` en la URL de Render.
+4. (Cadena) Continuar con A_12 (app Streamlit) consumiendo el contrato final de salida.

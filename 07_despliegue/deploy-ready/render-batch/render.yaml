@@ -7,7 +7,7 @@ services:
     name: caso-agentes-scoring-cron
     runtime: python
     plan: starter
-    schedule: "20 21 * * *"
+    schedule: "30 20 * * *"
     buildCommand: pip install --upgrade pip && pip install -r 07_despliegue/deploy-ready/render-batch/requirements.txt
     startCommand: bash 07_despliegue/deploy-ready/render-batch/start.sh
     envVars:
