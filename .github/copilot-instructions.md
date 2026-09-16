@@ -42,7 +42,7 @@ Aplica a TODAS las respuestas, en todos los modos y con todos los agentes.
 
 **Tipo de proceso configurado**: Scoring
 
-**Modo de ejecución**: LOCAL + RENDER_ROOT_READY
+**Modo de ejecución**: LOCAL + RENDER_LIVE
 
 **Sistema operativo detectado**: Windows
 
@@ -106,11 +106,15 @@ Material de despliegue: `07_despliegue/deploy-ready/api_render/` (paquete autoco
 - Python real del entorno validado: `3.12.13`
 - Versiones de `requirements.txt` verificadas contra los paquetes instalados en `.venv` (2026-09-15): `fastapi==0.141.1`, `uvicorn==0.52.4`, `pydantic==2.13.5` + cadena ML completa. Sin pendientes.
 
+**Validación en Render**: HECHA (2026-09-15).
+- URL pública: `https://caso-agentes-1-yhkk.onrender.com`
+- Deploy `Live` commit `dfd5c14`; auto-deploy activo por push (cada push = deploy nuevo).
+- `GET /docs` → OK; `POST /predict` → **200**, `score_contratacion 0.6967` → `MEDIA_PROBABILIDAD`.
+- Plan free: cold start de ~50 s tras inactividad.
+
 **Notas de despliegue**
 - `*.csv` está en `.gitignore` → el CSV de entrada NO viaja al repo (el batch usa `INPUT_URL`).
-- `07_despliegue/artefacto_pipeline.pkl` está des-ignorado → disponible en el build de Render
-  y resuelto desde `api_render/api/scoring.py` (no se duplica ni se mueve).
-- `requirements.txt` de la API: cadena ML tomada de `deploy-ready/render-batch/requirements.txt` (entorno real); versiones de `fastapi`/`uvicorn`/`pydantic` coinciden con los paquetes instalados en `.venv` y con `pyproject.toml`. El artefacto usa solo sklearn + category_encoders → no hacen falta `xgboost` ni `imbalanced-learn`. **`pyarrow==25.0.1` añadido** (API y batch) tras el primer deploy en Render: el artefacto deserializa series Arrow y sin él fallaba con `ModuleNotFoundError: pyarrow`.
+- `(Cadena) Continuar con A_12 (app Streamlit) consumiendo `POST /predict` de `https://caso-agentes-1-yhkk.onrender.com` (entrada lista `[{...}]`, salida reducida de 4 columnas)ments.txt` (entorno real); versiones de `fastapi`/`uvicorn`/`pydantic` coinciden con los paquetes instalados en `.venv` y con `pyproject.toml`. El artefacto usa solo sklearn + category_encoders → no hacen falta `xgboost` ni `imbalanced-learn`. **`pyarrow==25.0.1` añadido** (API y batch) tras el primer deploy en Render: el artefacto deserializa series Arrow y sin él fallaba con `ModuleNotFoundError: pyarrow`.
 - MCP Context7 no estaba disponible en la sesión → revalidar `PYTHON_VERSION` y precedencia en la documentación oficial de Render.
 
 **Siguiente paso recomendado**:
