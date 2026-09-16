@@ -4,8 +4,8 @@ Motor de scoring para campañas de fondos.
 Versión autocontenida para el paquete de despliegue `api_render`.
 Adaptación directa de `02_produccion_scoring.py` para uso en memoria.
 
-Cambio respecto a `07_despliegue/api/scoring.py`: el artefacto se resuelve
-desde la carpeta local `artefactos/` de este mismo paquete de despliegue.
+Resolución del artefacto: primero en `artefactos/` del propio paquete
+(si existe); si no, en `07_despliegue/artefacto_pipeline.pkl` del repo.
 """
 
 import unicodedata

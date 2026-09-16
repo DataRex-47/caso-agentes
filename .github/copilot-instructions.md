@@ -104,18 +104,16 @@ Material de despliegue: `07_despliegue/deploy-ready/api_render/` (paquete autoco
 - `GET /debug` → `"status": "OK"`, motor puntuando correctamente
 - `POST /predict` → OK
 - Python real del entorno validado: `3.12.13`
-- Pendiente único: fijar versiones exactas de `fastapi`/`uvicorn` en
-  `07_despliegue/deploy-ready/api_render/requirements.txt` con `uv pip freeze`.
+- Versiones de `requirements.txt` verificadas contra los paquetes instalados en `.venv` (2026-09-15): `fastapi==0.141.1`, `uvicorn==0.52.4`, `pydantic==2.13.5` + cadena ML completa. Sin pendientes.
 
 **Notas de despliegue**
 - `*.csv` está en `.gitignore` → el CSV de entrada NO viaja al repo (el batch usa `INPUT_URL`).
 - `07_despliegue/artefacto_pipeline.pkl` está des-ignorado → disponible en el build de Render
   y resuelto desde `api_render/api/scoring.py` (no se duplica ni se mueve).
-- `requirements.txt` de la API: cadena ML tomada de `deploy-ready/render-batch/requirements.txt` (entorno real); versiones de `fastapi`/`uvicorn` tomadas de `pyproject.toml`. **Confirmar con `uv pip freeze`**.
+- `requirements.txt` de la API: cadena ML tomada de `deploy-ready/render-batch/requirements.txt` (entorno real); versiones de `fastapi`/`uvicorn`/`pydantic` coinciden con los paquetes instalados en `.venv` y con `pyproject.toml`. El artefacto usa solo sklearn + category_encoders → no hacen falta `xgboost` ni `imbalanced-learn`.
 - MCP Context7 no estaba disponible en la sesión → revalidar `PYTHON_VERSION` y precedencia en la documentación oficial de Render.
 
 **Siguiente paso recomendado**:
-1. Confirmar versiones exactas con `uv pip freeze` y actualizar `07_despliegue/deploy-ready/api_render/requirements.txt`.
-2. Commit + push y alta manual del Web Service en Render con la configuración anterior.
-3. Comprobar `GET /health` y `GET /debug` en la URL de Render.
-4. (Cadena) Continuar con A_12 (app Streamlit) consumiendo el contrato final de salida.
+1. Commit + push y alta manual del Web Service en Render con la configuración anterior.
+2. Comprobar `GET /health` y `GET /debug` en la URL de Render.
+3. (Cadena) Continuar con A_12 (app Streamlit) consumiendo el contrato final de salida.
