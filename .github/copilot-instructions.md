@@ -110,7 +110,7 @@ Material de despliegue: `07_despliegue/deploy-ready/api_render/` (paquete autoco
 - `*.csv` está en `.gitignore` → el CSV de entrada NO viaja al repo (el batch usa `INPUT_URL`).
 - `07_despliegue/artefacto_pipeline.pkl` está des-ignorado → disponible en el build de Render
   y resuelto desde `api_render/api/scoring.py` (no se duplica ni se mueve).
-- `requirements.txt` de la API: cadena ML tomada de `deploy-ready/render-batch/requirements.txt` (entorno real); versiones de `fastapi`/`uvicorn`/`pydantic` coinciden con los paquetes instalados en `.venv` y con `pyproject.toml`. El artefacto usa solo sklearn + category_encoders → no hacen falta `xgboost` ni `imbalanced-learn`.
+- `requirements.txt` de la API: cadena ML tomada de `deploy-ready/render-batch/requirements.txt` (entorno real); versiones de `fastapi`/`uvicorn`/`pydantic` coinciden con los paquetes instalados en `.venv` y con `pyproject.toml`. El artefacto usa solo sklearn + category_encoders → no hacen falta `xgboost` ni `imbalanced-learn`. **`pyarrow==25.0.1` añadido** (API y batch) tras el primer deploy en Render: el artefacto deserializa series Arrow y sin él fallaba con `ModuleNotFoundError: pyarrow`.
 - MCP Context7 no estaba disponible en la sesión → revalidar `PYTHON_VERSION` y precedencia en la documentación oficial de Render.
 
 **Siguiente paso recomendado**:
