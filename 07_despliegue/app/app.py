@@ -18,10 +18,9 @@ La API debe estar arrancada antes (ver README.md).
 # ── Configuración ─────────────────────────
 # Bloque único de configuración operativa: única fuente de verdad para
 # URLs, endpoints, timeouts y reintentos.
-# Local-first: por defecto apunta a la API local validada por A_11.
-# Para consumir la API desplegada en Render, sustituir por la URL pública
-# real, p. ej. "https://caso-agentes-1-yhkk.onrender.com".
-API_BASE_URL = "http://127.0.0.1:8000"
+# Despliegue actual: apunta a la API desplegada en Render.
+# Para probar en local contra la API local, cambiar a "http://127.0.0.1:8000".
+API_BASE_URL = "https://caso-agentes-1-yhkk.onrender.com"
 SCORE_ENDPOINT = "/predict"
 WARMUP_ENDPOINT = "/health"
 
@@ -692,8 +691,8 @@ st.divider()
 
 # ── Configuración de conexión (avanzado, colapsado) ─────────────────────────
 st.caption(
-    "API de scoring configurada en `app.py`. Antes de desplegar en Render, "
-    "sustituye `API_BASE_URL` por la URL pública real de tu API."
+    "API de scoring configurada en `app.py`. Verifica que `API_BASE_URL` "
+    "apunta a la URL pública real de tu API antes de usar la app desplegada."
 )
 with st.expander("⚙️ Configuración de conexión (avanzado)"):
     st.markdown(f"**API configurada:** `{API_BASE_URL}`")
