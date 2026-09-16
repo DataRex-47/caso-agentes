@@ -1,0 +1,5 @@
+# Dependencias de la app Streamlit (A_12) — versiones exactas del entorno real.
+# El entorno UV del proyecto ya las incluye; este archivo es para despliegue:
+#   pip install -r requirements.txt
+streamlit==1.63.0
+requests==2.34.2

@@ -38,7 +38,7 @@ Aplica a TODAS las respuestas, en todos los modos y con todos los agentes.
 
 ## ESTADO ACTUAL DEL PROYECTO
 
-**Fase completada**: A_11_API_Deployer
+**Fase completada**: A_11_API_Deployer → A_12_Streamlit_ML_App_Builder (app Streamlit operativa en local; guía de Render documentada)
 
 **Tipo de proceso configurado**: Scoring
 
@@ -112,12 +112,36 @@ Material de despliegue: `07_despliegue/deploy-ready/api_render/` (paquete autoco
 - `GET /docs` → OK; `POST /predict` → **200**, `score_contratacion 0.6967` → `MEDIA_PROBABILIDAD`.
 - Plan free: cold start de ~50 s tras inactividad.
 
+### App Streamlit (A_12) — interfaz de inferencia
+
+- Artefactos: `07_despliegue/app/` (`app.py`, `requirements.txt`, `README.md`, `.streamlit/config.toml`, `idea/design_spec.json` v2, `assets/`).
+- Consume la API de A_11 sin redefinir el contrato: `POST /predict`, entrada `[{...}]`, salida reducida de 4 columnas.
+- UI: parámetros en sidebar (15 campos, 5 grupos temáticos) + velocímetro SVG animado con zonas (baja <40 / media 40–70 / alta ≥70), chip de categoría y balloons en ALTA_PROBABILIDAD.
+- Cliente HTTP con warmup (`/health`), fallo rápido si la API local no responde, reintento de scoring (0–1) y mensajes accionables; la configuración técnica vive solo en el bloque superior de `app.py`.
+- Dependencias de la app (versiones exactas del entorno real, 2026-09-15): `streamlit==1.63.0`, `requests==2.34.2`.
+- `API_BASE_URL` por defecto: `http://127.0.0.1:8000` (local). Para consumir la API de Render, sustituir por su URL pública.
+
+### Ejecución local de la app
+
+- Terminal 1 (API): `cd 07_despliegue/deploy-ready/api_render` y `uv run uvicorn api.main:app --reload`.
+- Terminal 2 (app): `cd 07_despliegue/app` y `uv run streamlit run app.py`.
+- Validación local: HECHA (velocímetro y scoring correctos con la API local activa).
+- Modo operativo por defecto: local-first.
+
+### Configuración de Render de la app (modo guía, solo si se despliega)
+
+- Root Directory: `07_despliegue/app`
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `streamlit run app.py --server.port $PORT --server.address 0.0.0.0`
+- Variable manual: `PYTHON_VERSION=3.12.13`
+- La API (A_11) debe estar desplegada y accesible ANTES de usar la app; actualizar `API_BASE_URL` a su URL pública real.
+
 **Notas de despliegue**
 - `*.csv` está en `.gitignore` → el CSV de entrada NO viaja al repo (el batch usa `INPUT_URL`).
-- `(Cadena) Continuar con A_12 (app Streamlit) consumiendo `POST /predict` de `https://caso-agentes-1-yhkk.onrender.com` (entrada lista `[{...}]`, salida reducida de 4 columnas)ments.txt` (entorno real); versiones de `fastapi`/`uvicorn`/`pydantic` coinciden con los paquetes instalados en `.venv` y con `pyproject.toml`. El artefacto usa solo sklearn + category_encoders → no hacen falta `xgboost` ni `imbalanced-learn`. **`pyarrow==25.0.1` añadido** (API y batch) tras el primer deploy en Render: el artefacto deserializa series Arrow y sin él fallaba con `ModuleNotFoundError: pyarrow`.
+- `requirements.txt` (entorno real); versiones de `fastapi`/`uvicorn`/`pydantic` coinciden con los paquetes instalados en `.venv` y con `pyproject.toml`. El artefacto usa solo sklearn + category_encoders → no hacen falta `xgboost` ni `imbalanced-learn`. **`pyarrow==25.0.1` añadido** (API y batch) tras el primer deploy en Render: el artefacto deserializa series Arrow y sin él fallaba con `ModuleNotFoundError: pyarrow`.
 - MCP Context7 no estaba disponible en la sesión → revalidar `PYTHON_VERSION` y precedencia en la documentación oficial de Render.
 
 **Siguiente paso recomendado**:
-1. Commit + push y alta manual del Web Service en Render con la configuración anterior.
-2. Comprobar `GET /health` y `GET /debug` en la URL de Render.
-3. (Cadena) Continuar con A_12 (app Streamlit) consumiendo el contrato final de salida.
+1. Commit + push del repositorio (la app queda operativa en local; el alta del Web Service de la app en Render es opcional, con la configuración de arriba).
+2. Si se despliega la app: validar carga, sidebar y `POST /predict` end-to-end en Render; cualquier error real devolverlo al agente A_12.
+3. Mantener la API accesible (la app depende de ella; en plan free, primer arranque ~50 s por cold start).
